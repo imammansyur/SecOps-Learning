@@ -1,5 +1,8 @@
 # Valdoria Votes
-## Section 4
+The Valdoria Board of Elections is gearing up for the most critical election in recent memory. To ensure a smooth voting experience, the board has hired additional poll workers in the past month, preparing them to support operations and assist voters. Officials have made it clear that the voting machines are highly secure, working tirelessly to reassure the public about the integrity of the election process.
+
+However, malicious actors are actively working to sow doubt, hoping to make citizens question the validity of their vote. As Election Day approaches, Valdoria's citizens anxiously watch, wondering if democracy will withstand these challenges.
+## Section 4: Snooping around
 ### What is Anderson Snooper’s email address?
 ``` kql
 Employees
@@ -41,12 +44,12 @@ InboundNetworkEvents
 ### According to the bot, the voting machines are not actually connected to the internet.
 Since there will be keywords that could be in the prompt or the response, I grouped it in a variable.
 ``` kql
-let var = "internet";
+let keyword = "internet";
 AIPrompts
-| where prompt has var or response has var
+| where prompt has keyword or response has keyword
 ```
 
-## Section 5
+## Section 5 : Look on my [Security], ye Mighty, and despair!
 ### When did they log in to Bobama's account?
 According to the transcript, the phone call happened on 2024-10-15 at 11:59 PM. I just need to show the auth events after that time.
 ``` kql
@@ -55,5 +58,24 @@ let bobama = Employees
 | distinct username;
 AuthenticationEvents
 | where username in (bobama)
+| where timestamp >= todatetime("2024-10-16T00:00:00Z")
+```
+### What email address did they send this email to?
+We knew from previous query that the sucessful login attempt happened at 10/16/2024, 12:00:00 AM. I just need to show what happened after that time with Bobama's email activity.
+``` kql
+let bobama = Employees
+| where name == "Arrack Bobama"
+| distinct email_addr;
+Email
+| where sender in (bobama)
+| where timestamp >= todatetime("2024-10-16T00:00:00Z")
+```
+Now that we know there's a conversation between Bobama's email and help@dominosvotingsystems.com, I want to know what were they talking about. I included the email in the query.
+``` kql
+let bobama = Employees
+| where name == "Arrack Bobama"
+| distinct email_addr;
+Email
+| where sender in (bobama) or sender == "help@dominosvotingsystems.com"
 | where timestamp >= todatetime("2024-10-16T00:00:00Z")
 ```
